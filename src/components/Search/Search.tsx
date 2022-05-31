@@ -5,30 +5,34 @@ import { useDispatch, useSelector } from "react-redux";
 import { IImage } from "../../interfaces";
 
 export default function Search() {
-  const [imageName, setImageName] = React.useState("ditto");
-  const [isShiny, setIsShiny] = React.useState(true);
-  const [imageUrl, setImageUrl] = React.useState("");
+  const [imageName, setImageName] = React.useState("");
+  const [isShiny, setIsShiny] = React.useState(false);
+  const [searchedImage, setSearchedImage] = React.useState({
+    name: "",
+    isShiny:false,
+    url: ""
+  })
   const dispatch = useDispatch();
   const {images} = useSelector(selectImages);
 
   const processImage = (data: any) => {
     console.log(data);
-
+    setSearchedImage({name: "", isShiny:false, url: ""});
+    
     if (!data.sprites) {
       alert("Image not found");
       return;
     }
 
-    console.log(
-      isShiny ? data.sprites.front_shiny : data.sprites.front_default
-    );
-    setImageUrl(
-      isShiny ? data.sprites.front_shiny : data.sprites.front_default
-    );
+    setSearchedImage({
+      name: imageName,
+      isShiny: isShiny,
+      url: isShiny ? data.sprites.front_shiny : data.sprites.front_default
+    });
   };
 
   const onSearch = (event: any) => {
-    setImageUrl("");
+
     const url = "https://pokeapi.co/api/v2/pokemon/";
     axios
       .get(`${url + imageName}`)
@@ -37,7 +41,7 @@ export default function Search() {
       })
       .catch((err) => {
         console.log(err);
-        alert("Image not found");
+        alert("ERROR: Image not found");
       });
   };
 
@@ -54,18 +58,24 @@ export default function Search() {
 
     if (
       images?.find(
-        (image:IImage) => image.name === imageName && image.isShiny === isShiny
+        (image:IImage) => image.name === searchedImage.name && image.isShiny === searchedImage.isShiny
       )
     ) {
-      alert("Image already was saved!");
+      alert("Error: Image already was saved!");
     } else {
       const image: IImage = {
-        name: imageName,
-        isShiny: isShiny,
-        url: imageUrl,
+        name: searchedImage.name,
+        isShiny: searchedImage.isShiny,
+        url: searchedImage.url,
       };
 
       dispatch(addImage(image));
+      alert(`Image "${searchedImage.name}" was saved!!`);
+      setSearchedImage({
+        name: "",
+        isShiny:false,
+        url: ""
+      });
     }
   };
 
@@ -79,6 +89,7 @@ export default function Search() {
           value={imageName}
           onChange={onName}
         />
+        <br/>
         <label htmlFor="imageType">Shiny</label>
         <input
           type="checkbox"
@@ -86,11 +97,15 @@ export default function Search() {
           checked={isShiny}
           onChange={onType}
         />
+        <br/>
         <input type="button" value="Search" onClick={onSearch}></input>
-        <div></div>
-        {imageUrl !== "" && (
+        <hr />
+        <br />
+        {searchedImage.url !== "" && (
           <>
-            <img src={imageUrl} alt={imageName} />
+            <h4>{searchedImage.name}</h4>
+            <img src={searchedImage.url} alt={searchedImage.name} />
+            <br />
             <input type="button" value="Add" onClick={onAdd}></input>
           </>
         )}
