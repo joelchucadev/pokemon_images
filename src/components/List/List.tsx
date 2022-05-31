@@ -10,7 +10,7 @@ export default function List () {
       return (
         <li>
             <h4>{image.name}</h4>
-            <img src={image.url}></img> 
+            <img src={image.url} alt={image.name}></img> 
         </li>
       )
     })
